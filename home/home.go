@@ -3,33 +3,46 @@ package home
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"net/url"
 )
 
-func Home(c *gin.Context){
-	r := c.Request
+func Home(c *gin.Context) {
 
-	message := fmt.Sprintf("[%s]\n", r.Method)
+	_ = c.Request.ParseForm()
+
+	if len(c.Request.URL.Query()) + len(c.Request.PostForm) > 0 {
+		ProcessForm(c)
+	} else {
+		Index(c)
+	}
+
+}
+
+func Index(c *gin.Context) {
+	c.HTML(http.StatusOK, "index.tmpl.html", nil)
+}
+
+func ProcessForm(c *gin.Context) {
+	r := c.Request
+	response := fmt.Sprintf("[%s]\n", r.Method)
 
 	parameters := r.URL.Query()
 	if len(parameters) > 0 {
-		message += "QUERY PARAMETERS\n"
-		message = formatValues(parameters, message)
+		response += "QUERY PARAMETERS\n"
+		response = FormatValues(parameters, response)
 	}
 
-	// Call ParseForm() to parse the raw query and update r.PostForm and r.Form.
-	if err := r.ParseForm(); err != nil {
-		message += fmt.Sprintf("Error: %v", err)
-	} else if len(r.PostForm) > 0 {
-		message += "BODY PARAMETERS\n"
+	if len(r.PostForm) > 0 {
+		response += "BODY PARAMETERS\n"
 		form := r.PostForm
-		message = formatValues(form, message)
+		response = FormatValues(form, response)
 	}
 
-	c.String(200, message)
+	c.String(200, response)
 }
 
-func formatValues(body url.Values, message string) string {
+func FormatValues(body url.Values, message string) string {
 	for key, values := range body {
 		if len(values) > 1 {
 			for index, value := range values {
