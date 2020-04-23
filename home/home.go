@@ -2,18 +2,12 @@ package home
 
 import (
 	"fmt"
-	"log"
-	"net/http"
+	"github.com/gin-gonic/gin"
 	"net/url"
 )
 
-type Handlers struct {
-	logger *log.Logger
-}
-
-func Home(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+func Home(c *gin.Context){
+	r := c.Request
 
 	message := fmt.Sprintf("[%s]\n", r.Method)
 
@@ -32,7 +26,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		message = formatValues(form, message)
 	}
 
-	_, _ = w.Write([]byte(message))
+	c.String(200, message)
 }
 
 func formatValues(body url.Values, message string) string {
@@ -48,8 +42,4 @@ func formatValues(body url.Values, message string) string {
 		}
 	}
 	return message
-}
-
-func SetupRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/", Home)
 }
